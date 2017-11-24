@@ -1,0 +1,213 @@
+<?php
+ 
+//define('CERN_PROFILES_SITE_URL', 'https://cern.ch/profiles/');  //trailing slash needed!!
+define('CERN_DIRECTORY_URL', 'http://cern.ch/directory');
+define('CERN_ACCOUNT_URL', 'https://cern.ch/account');
+define('CERN_SITE', 'http://cern.ch');
+
+
+/**
+ * Implementation of hook_help()
+ */
+function cern_toolbar_help($path, $arg) {
+  if ($path == 'admin/help#cern_toolbar') {
+    $output = '';
+    $output .= '<h3>' . t('About') . '</h3>';  
+    $output .= '<p>' . t('This module enables the CERN toolbar on the top of the site.') . '</p>';
+    $output .= '<p>' . t('This module is not configurable: find more information about the CERN Toolbar at') . ' ' . l('http://ux.web.cern.ch/assets/cern-toolbar', 'http://ux.web.cern.ch/assets/cern-toolbar') . '</p>';
+    return $output;
+  }
+}
+
+
+
+/**
+ * Implements hook_theme().
+ */
+function cern_toolbar_theme($existing, $type, $theme, $path) {
+  $items['cern_toolbar'] = array(
+    'render element' => 'cern_toolbar',
+    'template' => 'cern_toolbar',
+    'path' => drupal_get_path('module', 'cern_toolbar'),
+  );
+  return $items;
+}
+
+
+
+/**
+ * Implements hook_page_build().
+ *
+ * Add admin cern_toolbar to the page_top region automatically.
+ */
+function cern_toolbar_page_build(&$page) {
+  $page['page_top']['cern_toolbar'] = array(
+    '#pre_render' => array('cern_toolbar_pre_render'),
+  );
+}
+
+
+
+/**
+ * Prerender function for the cern_toolbar.
+ *
+ * Since building the cern_toolbar takes some time, it is done just prior to
+ * rendering to ensure that it is built only if it will be displayed.
+ */
+function cern_toolbar_pre_render($cern_toolbar) {
+  $cern_toolbar = array_merge($cern_toolbar, cern_toolbar_view());
+  return $cern_toolbar;
+}
+
+
+
+/**
+ * Implements hook_preprocess_html().
+ *
+ * Add some page classes, so global page theming can adjust to the cern_toolbar.
+ */
+function cern_toolbar_preprocess_html(&$vars) {
+  if (isset($vars['page']['page_top']['cern_toolbar'])) 
+    $vars['classes_array'][] = 'cern-toolbar';
+  
+  // If IE8 and below add ie.css
+  drupal_add_css( drupal_get_path('module', 'cern_toolbar') . '/css/ie.css',
+              array(
+                'group' => CSS_THEME,
+                'browsers' => array(
+                  'IE' => 'lt IE 8',
+                  '!IE' => FALSE,
+                ),
+                'weight' => 999,
+                'every_page' => TRUE,
+              )
+            );
+
+}
+
+
+
+/**
+ * Implements hook_system_info_alter().
+ *
+ * Indicate that the 'page_top' region (in which the cern_toolbar will be displayed)
+ * is an overlay supplemental region that should be refreshed whenever its
+ * content is updated.
+ *
+ * This information is provided for any module that might need to use it, not
+ * just the core Overlay module.
+ */
+function cern_toolbar_system_info_alter(&$info, $file, $type) {
+  if ($type == 'theme') {
+    $info['overlay_supplemental_regions'][] = 'page_top';
+  }
+}
+
+
+
+/**
+ * Builds the menu as a structured array ready for drupal_render().
+ */
+function cern_toolbar_view() {
+  global $user;
+
+  $module_path = drupal_get_path('module', 'cern_toolbar');
+  $build = array(
+    '#theme' => 'cern_toolbar',
+    '#weight' => '1000',
+    '#attached' => array(
+      'css' => array(
+        $module_path . '/css/screen.css',
+      ),
+    ),
+  );
+  
+  //CLASSES FOR TOOLBAR MAIN DIV
+  if ($user->uid) 
+    $cern_toolbar_classes = array('user-authenticated');
+  else
+    $cern_toolbar_classes = array('user-not-authenticated');
+  $build['cern_toolbar_classes'] = implode(' ', $cern_toolbar_classes);
+  
+  /* === BUILDING ACCOUNT LINK === */
+  if (isset($_SERVER['ADFS_FEDERATION'])) $federation = ' ('.$_SERVER['ADFS_FEDERATION'].')'; else $federation='';
+  if (isset($_SERVER['ADFS_FULLNAME'])) $fullname = $_SERVER['ADFS_FULLNAME']; else $fullname='';
+  if (isset($_SERVER['ADFS_UPN'])) $email_address = $_SERVER['ADFS_UPN']; else $email_address='';
+  if (isset($_SERVER['ADFS_LOGIN'])) $username = $_SERVER['ADFS_LOGIN']; else $username='';
+  if (isset($_SERVER['ADFS_AUTHLEVEL'])&&(strtolower($_SERVER['ADFS_AUTHLEVEL'])=='multifactor')) $auth_level = $_SERVER['ADFS_AUTHLEVEL']; else $auth_level='';
+// forcing multifactor auth level for testing
+//  $auth_level = 'multifactor';
+  if ($auth_level != '') {
+    $auth_level_text = " using " . strtolower($auth_level) . " authentication"; 
+    $auth_level_class = "cern-".strtolower($auth_level); 
+  }
+  else {
+     $auth_level_text=""; 
+     $auth_level_class="";
+  }
+  if ($user->uid) {
+    $accountlink_signout = '<a href="/user/logout" class="cern-signout" title ="' . t('Sign out of your account') . '">' . t('Sign out') . '</a> ';
+    $accountlink =  '<span>'.t('Signed in as: ').' <a class="account" href="'.CERN_ACCOUNT_URL.'" title ="'.t('Signed in as ') . $fullname . ' ('.$username.')'.$auth_level_text.'">' . $username .$federation. '</a> </span>' . $accountlink_signout;
+    // USER LOGGED IN
+    if (isset($_SERVER['ADFS_IDENTITYCLASS']))
+      switch ($_SERVER['ADFS_IDENTITYCLASS']) {
+
+          case 'CERN Registered':
+               //<a href="http://cern.ch/account" title="Signed in as Joe Bloggs (jbloggs)">Signed in as: jbloggs (CERN)</a>
+               // this is the default string  
+               break;
+          case 'CERN Shared':
+               //<a href="http://cern.ch/account" title="Signed in as Joe Bloggs (libframe)">Signed in as: libframe (CERN)</a>
+               // this is the default string  
+              break;
+          case 'HEP Trusted':
+               //Signed in as: username (Institute name)</li>
+               $accountlink =  t('Signed in as:') . ' '. $username . $federation .' '. $accountlink_signout;;
+              break;
+          case 'Verified External':
+               //<a href="http://cern.ch/account" title="Signed in with a verified external account">Signed in as: johnnylongname@yahoo.fr</a>
+               $accountlink =  t('Signed in as: ').' <a class="account" href="'.CERN_ACCOUNT_URL.'" title ="' . t('Signed in with a verified external account').'">' . $email_address . '</a> ' . $accountlink_signout;
+              break;
+          case 'Unverified External':
+               //Signed in as: johnnylongname@yahoo.fr (Facebook)
+               $accountlink =  t('Signed in as:')  .' '.$email_address  . $federation .' '. $accountlink_signout;;
+              break;
+          default:
+              // this is the default string  
+              break;
+      }
+  }
+  else {
+    //USER NOT LOGGED IN
+    $accountlink = l(t('Sign in'), shib_auth_generate_login_url(), array('attributes' => array('title' => t('Sign in to your CERN account'), 'class' => 'cern-account')));
+  }
+  /* ============================= */
+  
+  
+  
+  //TOOLBAR NAV STRUCTURE
+  $cern_toolbar_nav_links = array(
+   // CERN 'home' link and slogan (left side)  
+    'cern-home' => '<h1>' . l( t('CERN') . ' <span>' . t('Accelerating science') . '</span>', ($user->uid) ? str_replace("http://", "https://",CERN_SITE) : CERN_SITE, array('html' => TRUE, 'attributes' => array('title' => t('CERN')))) . '</h1>',
+    // CERN Account links (right side)
+    'account' => $accountlink,
+   // CERN 'directory' (right side)
+    'directory' => l( t('Directory'), 
+                      ($user->uid) ? str_replace("http://", "https://", CERN_DIRECTORY_URL) : CERN_DIRECTORY_URL, 
+                      array('html' => TRUE, 'attributes' => array('title' => t('Search CERN resources and browse the directory'), 'class' => 'cern-directory'))
+                   ),
+  );
+  $build['cern_toolbar_nav'] = array(
+    '#type' => 'markup',
+    '#markup' => '',
+    'child1' => array('#markup' => $cern_toolbar_nav_links['cern-home']),
+    'child3' => array('#markup' => ($user->uid) 
+                                   ? '<ul class="cern-signedin"><li class="cern-accountlinks '.$auth_level_class.'">' . $cern_toolbar_nav_links['account'] . '</li>'
+                                   : '<ul><li class="cern-accountli">' . $cern_toolbar_nav_links['account'] . '</li>'),
+    'child2' => array('#markup' => '<li>' . $cern_toolbar_nav_links['directory'] . '</li></ul>'),
+   // 'child4' => array('#markup' => '<li id="a-search" class="tray">' . $cern_toolbar_nav_links['search'] . '</li>'),
+  //  '#prefix' => '<div id="toolbar-nav"><ul>',
+  //  '#suffix' => '</ul></div>',
+  );
+  return $build;
+}

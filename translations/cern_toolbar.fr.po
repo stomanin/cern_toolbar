@@ -1,0 +1,88 @@
+# $Id$
+#
+# French translation for CERN Toolbar module
+# Copyright 2012 CERN TM Group <john.pym@cern.ch>
+# Generated from files:
+#  cern_toolbar.module: n/a
+#  cern_toolbar.info: n/a
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2012-06-18 11:09+0200\n"
+"PO-Revision-Date: 2012-06-18 11:09+0200\n"
+"Last-Translator: John Pym <john.pym@cern.ch>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+
+#: cern_toolbar.module:15
+msgid "About"
+msgstr ""
+
+#: cern_toolbar.module:16
+msgid "This module enables the CERN toolbar on the top of the site."
+msgstr ""
+
+#: cern_toolbar.module:17
+msgid "This module is not configurable: find more information about the CERN Toolbar at"
+msgstr ""
+
+#: cern_toolbar.module:149
+msgid "Sign out of your account"
+msgstr "Se déconnecter"
+
+#: cern_toolbar.module:149
+msgid "Sign out"
+msgstr "Deconnexion"
+
+#: cern_toolbar.module:150;169
+msgid "Signed in as: "
+msgstr "Connecté avec l’identifiant"
+
+#: cern_toolbar.module:150
+msgid "Signed in as "
+msgstr "Connecté avec l’identifiant "
+
+#: cern_toolbar.module:165;173
+msgid "Signed in as:"
+msgstr "Connecté avec l’identifiant :"
+
+#: cern_toolbar.module:169
+msgid "Signed in with a verified external account"
+msgstr "Connecté avec un compte externe authentifié"
+
+#: cern_toolbar.module:182
+msgid "Sign in"
+msgstr "Connexion"
+
+#: cern_toolbar.module:182
+msgid "Sign in to your CERN account"
+msgstr "Se connecter avec son compte CERN"
+
+#: cern_toolbar.module:191;191 cern_toolbar.info:0
+msgid "CERN"
+msgstr "CERN"
+
+#: cern_toolbar.module:191
+msgid "Accelerating science"
+msgstr "Accélérateur de science"
+
+#: cern_toolbar.module:195
+msgid "Directory"
+msgstr "Liens utiles"
+
+#: cern_toolbar.module:197
+msgid "Search CERN resources and browse the directory"
+msgstr "Recherche et liens utiles"
+
+#: cern_toolbar.info:0
+msgid "CERN Toolbar"
+msgstr "Toolbar CERN"
+
+#: cern_toolbar.info:0
+msgid "Enables the CERN toolbar on the top of the site."
+msgstr ""
+

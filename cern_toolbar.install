@@ -1,0 +1,11 @@
+<?php
+/**
+ * Update 7001: Unsetting configuration variables: cern_toolbar_searchbox_persist, cern_toolbar_show_searchbox, cern_toolbar_show_userlinks, cern_toolbar_show_userlinks_loggedin, cern_toolbar_use_cern_search.
+ */
+function cern_toolbar_update_7001() {
+  variable_del('cern_toolbar_searchbox_persist');
+  variable_del('cern_toolbar_show_searchbox');
+  variable_del('cern_toolbar_show_userlinks');
+  variable_del('cern_toolbar_show_userlinks_loggedin');
+  variable_del('cern_toolbar_use_cern_search');
+}
